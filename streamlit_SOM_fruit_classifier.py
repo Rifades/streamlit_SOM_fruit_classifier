@@ -112,7 +112,9 @@ if uploaded_file is not None:
                 quantization_error = np.linalg.norm(img_vector - winning_weights)
                 
                 if quantization_error > outlier_threshold:
-                    st.warning(f"⚠️ **Unidentified Object**\n\nThis image does not match known fruit patterns closely enough. \n\n*(Distance: {quantization_error:.2f} | Max allowed: {outlier_threshold:.2f})*")
+                    # Explicitly output "Not Fruit" when the image falls outside the threshold
+                    st.error("### ❌ NOT FRUIT")
+                    st.warning(f"This image does not match any known fruits in our database.\n\n*(Distance: {quantization_error:.2f} | Max allowed: {outlier_threshold:.2f})*")
                 else:
                     # 4. Map the winning neuron to a fruit label
                     if winner in neuron_label_map:
