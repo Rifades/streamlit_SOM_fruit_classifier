@@ -72,11 +72,29 @@ def extract_features(img, extractor):
 # ==========================================
 # Load all required components into memory
 feature_extractor = load_feature_extractor()
-som_model, neuron_label_map, outlier_threshold = load_som_model()
+# Renamed to base_threshold to allow for the slider multiplier
+som_model, neuron_label_map, base_threshold = load_som_model() 
 fruit_nutrients = load_nutrients()
 
 if som_model is None:
     st.stop() # Halt execution if the model file is missing
+
+# ==========================================
+# SIDEBAR: STRICTNESS TUNER
+# ==========================================
+with st.sidebar:
+    st.header("🎛️ AI Strictness Tuner")
+    st.markdown("Adjust how strict the AI is when deciding if an image is actually a fruit.")
+    
+    strictness_modifier = st.slider(
+        "Threshold Multiplier", 
+        min_value=0.50, max_value=1.50, value=1.00, step=0.05,
+        help="Lower = Stricter (More likely to say NOT FRUIT). Higher = Looser."
+    )
+    
+    # Calculate the active threshold dynamically based on the slider
+    active_threshold = base_threshold * strictness_modifier
+    st.info(f"**Current Max Distance:** {active_threshold:.2f}")
 
 # ==========================================
 # MAIN USER INTERFACE
@@ -107,14 +125,14 @@ if uploaded_file is not None:
                 # 2. Find the winning neuron on the SOM
                 winner = som_model.winner(img_vector)
                 
-                # 3. Check distance against the dynamic threshold
+                # 3. Check distance against the SLIDER threshold (active_threshold)
                 winning_weights = som_model.get_weights()[winner]
                 quantization_error = np.linalg.norm(img_vector - winning_weights)
                 
-                if quantization_error > outlier_threshold:
+                if quantization_error > active_threshold:
                     # Explicitly output "Not Fruit" when the image falls outside the threshold
                     st.error("### ❌ NOT FRUIT")
-                    st.warning(f"This image does not match any known fruits in our database.\n\n*(Distance: {quantization_error:.2f} | Max allowed: {outlier_threshold:.2f})*")
+                    st.warning(f"This image does not match any known fruits in our database.\n\n*(Distance: {quantization_error:.2f} | Max allowed: {active_threshold:.2f})*")
                 else:
                     # 4. Map the winning neuron to a fruit label
                     if winner in neuron_label_map:
@@ -132,6 +150,7 @@ if uploaded_file is not None:
 
                     # 5. Display the Classification Result
                     st.success(f"### ✅ Identified: {predicted_label.upper()}")
+                    st.caption(f"*(Confidence/Distance Score: {quantization_error:.2f})*")
                     
                     # 6. Fetch and Display Nutritional Data
                     fruit_name = predicted_label.lower().strip()
