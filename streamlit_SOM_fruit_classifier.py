@@ -18,7 +18,7 @@ st.set_page_config(page_title="SOM Fruit Classifier", page_icon="🍎", layout="
 # ==========================================
 # CONSTANTS
 # ==========================================
-MODEL_FILE = "som_model.pkl"
+MODEL_FILE = "new_som_model.pkl"
 CSV_FILE = "fruit_nutrients.csv"
 
 # ==========================================
