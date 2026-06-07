@@ -27,7 +27,7 @@ CSV_FILE = "fruit_nutrients.csv"
 @st.cache_resource
 def load_feature_extractor():
     """Loads the exact same MobileNetV2 model used during training."""
-    model = models.mobilenet_v2(weights=models.MobileNetV2_Weights.DEFAULT)
+    model = models.mobilenet_v2(pretrained=True)
     model.classifier = torch.nn.Identity() # Remove classification head
     model.eval() # Set to evaluation mode
     return model
